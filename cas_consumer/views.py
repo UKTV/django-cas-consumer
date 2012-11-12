@@ -42,6 +42,10 @@ def login(request, redirect_field_name=REDIRECT_FIELD_NAME):
         request.session['login_redirect_to'] = redirect_to
         params = settings.CAS_EXTRA_LOGIN_PARAMS
         params.update({settings.CAS_SERVICE_LABEL: service})
+        # override params with anything posted to the view
+        for key,value in params.items():
+            if key in request.REQUEST:
+                params[key] = request.REQUEST.get(key, value)
         url = cas_login + '?'
         raw_params = ['%s=%s' % (key, value) for key, value in params.items()]
         url += '&'.join(raw_params)
