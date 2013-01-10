@@ -13,7 +13,7 @@ try:
 except ImportError:
     from elementtree import ElementTree
 
-try: 
+try:
     from cStringIO import StringIO
 except ImportError:
     from StringIO import StringIO
@@ -189,7 +189,8 @@ class CASBackend(object):
     """
     protocol = getattr(settings, 'CAS_VALIDATION_PROTOCOL', 2)
     set_email = getattr(settings, 'CAS_SET_EMAIL_FROM_ATTRIBUTE', True)
-    
+    set_username = getattr(settings, 'CAS_SET_USERNAME_FROM_PRIMARY', False)
+
     def authenticate(self, ticket, service):
         """Verifies CAS ticket and gets or creates User object"""
         if self.protocol == 1:
@@ -202,7 +203,7 @@ class CASBackend(object):
         if not valid or not valid.identifiers:
             return None
         # Select any users that match valid identifiers. Specify an ordering for consistent results.
-        users = list(User.objects.filter(username__in=valid.identifiers).order_by('id'))
+        users = list(User.objects.filter(username__in=valid.identifiers, is_active=True).order_by('id'))
         logger.info('Authentication turned up %s users: %s', len(users), users)
         if users:
             user = None
@@ -216,9 +217,7 @@ class CASBackend(object):
                 # Otherwise, pick the first in the result set.
                 user = users[0]
             logger.info('Picking primary user: %s', user)
-            if self.set_email and 'email' in valid.attributes and valid.attributes['email'] != user.email:
-                user.email = valid.attributes['email']
-                user.save()
+
         else:
             logger.info('Creating new user for %s', valid.username)
             user = User(username=valid.username)
@@ -238,8 +237,26 @@ class CASBackend(object):
             else:
                 logger.info('Sent merge signal. Result: %s', result)
 
+        if users:
+            changed = False
+            if (self.set_email
+                and 'email' in valid.attributes
+                and valid.attributes['email'] != user.email
+                ):
+                user.email = valid.attributes['email']
+                changed = True
+
+            if (self.set_username
+                and user.username != primary
+                ):
+                user.username = primary
+                changed = True
+
+            if changed:
+                user.save()
+
         logger.info('Authenticated user: %s' % user)
-            
+
         signals.on_cas_authentication.send(sender=self, user=user, attributes=valid.attributes)
         return user
 
