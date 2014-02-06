@@ -3,6 +3,7 @@
 """
 import urlparse
 from django.http import HttpResponseForbidden, HttpResponseRedirect
+from django.utils.http import urlencode
 from django.contrib.auth import authenticate
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth import login as auth_login, logout as auth_logout
@@ -50,8 +51,12 @@ def login(request, redirect_field_name=REDIRECT_FIELD_NAME):
             if key in request.REQUEST:
                 params[key] = request.REQUEST.get(key, value)
         url = cas_login + '?'
-        if 'req_press' in request.REQUEST:
-            url += 'req_press=1&'
+        if 'req_press' in request.REQUEST and 'uid' in request.REQUEST:
+            url += urlencode({
+                'req_press': 1,
+                'uid': request.REQUEST['uid']
+            })
+            url += '&'
         raw_params = ['%s=%s' % (key, value) for key, value in params.items()]
         url += '&'.join(raw_params)
         return HttpResponseRedirect(url)
