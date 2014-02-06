@@ -50,6 +50,8 @@ def login(request, redirect_field_name=REDIRECT_FIELD_NAME):
             if key in request.REQUEST:
                 params[key] = request.REQUEST.get(key, value)
         url = cas_login + '?'
+        if 'req_press' in request.REQUEST:
+            url += 'req_press=1&'
         raw_params = ['%s=%s' % (key, value) for key, value in params.items()]
         url += '&'.join(raw_params)
         return HttpResponseRedirect(url)
