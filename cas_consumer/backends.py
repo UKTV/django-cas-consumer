@@ -20,7 +20,7 @@ except ImportError:
 
 from django.conf import settings
 
-from django.contrib.auth.models import User
+from uktvauth.models import UKTVUser
 
 from . import signals
 
@@ -203,7 +203,7 @@ class CASBackend(object):
         if not valid or not valid.identifiers:
             return None
         # Select any users that match valid identifiers. Specify an ordering for consistent results.
-        users = list(User.objects.filter(username__in=valid.identifiers).order_by('id'))
+        users = list(UKTVUser.objects.filter(username__in=valid.identifiers).order_by('id'))
         logger.info('Authentication turned up %s users: %s', len(users), users)
         if users:
             user = None
@@ -220,7 +220,7 @@ class CASBackend(object):
 
         else:
             logger.info('Creating new user for %s', valid.username)
-            user = User(username=valid.username)
+            user = UKTVUser(username=valid.username)
             user.set_unusable_password()
             if self.set_email and 'email' in valid.attributes:
                 user.email = valid.attributes['email']
@@ -263,6 +263,6 @@ class CASBackend(object):
     def get_user(self, user_id):
         """Retrieve the user's entry in the User model if it exists"""
         try:
-            return User.objects.get(pk=user_id)
-        except User.DoesNotExist:
+            return UKTVUser.objects.get(pk=user_id)
+        except UKTVUser.DoesNotExist:
             return None
