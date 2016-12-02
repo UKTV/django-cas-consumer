@@ -18,9 +18,9 @@ try:
 except ImportError:
     from StringIO import StringIO
 
+from django.contrib.auth import get_user_model
 from django.conf import settings
 
-from uktvauth.models import UKTVUser
 
 from . import signals
 
@@ -193,6 +193,8 @@ class CASBackend(object):
 
     def authenticate(self, ticket, service):
         """Verifies CAS ticket and gets or creates User object"""
+        User = get_user_model()
+
         if self.protocol == 1:
             valid = CAS1Validation(ticket, service)
         elif self.protocol == 2:
@@ -203,7 +205,7 @@ class CASBackend(object):
         if not valid or not valid.identifiers:
             return None
         # Select any users that match valid identifiers. Specify an ordering for consistent results.
-        users = list(UKTVUser.objects.filter(username__in=valid.identifiers).order_by('id'))
+        users = list(User.objects.filter(username__in=valid.identifiers).order_by('id'))
         logger.info('Authentication turned up %s users: %s', len(users), users)
         if users:
             user = None
@@ -220,7 +222,7 @@ class CASBackend(object):
 
         else:
             logger.info('Creating new user for %s', valid.username)
-            user = UKTVUser(username=valid.username)
+            user = User(username=valid.username)
             user.set_unusable_password()
             if self.set_email and 'email' in valid.attributes:
                 user.email = valid.attributes['email']
@@ -262,7 +264,8 @@ class CASBackend(object):
 
     def get_user(self, user_id):
         """Retrieve the user's entry in the User model if it exists"""
+        User = get_user_model()
         try:
-            return UKTVUser.objects.get(pk=user_id)
-        except UKTVUser.DoesNotExist:
+            return User.objects.get(pk=user_id)
+        except User.DoesNotExist:
             return None
