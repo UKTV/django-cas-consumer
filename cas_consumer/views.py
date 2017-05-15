@@ -77,6 +77,12 @@ def login(request, redirect_field_name=REDIRECT_FIELD_NAME):
         # Okay, security checks complete. Log the user in.
         auth_login(request, user)
         name = user.first_name or user.username
+
+        if '?' in redirect_to:
+            redirect_to += '&loginComplete=true'
+        else:
+            redirect_to += '?loginComplete=true'
+
         if messages is not None:
             messages.success(request, "Login succeeded. Welcome, %s." % name)
         return HttpResponseRedirect(redirect_to)
