@@ -24,9 +24,9 @@ except ImportError:
 
 from io import BytesIO
 
+from django.contrib.auth import get_user_model
 from django.conf import settings
 
-from django.contrib.auth.models import User
 
 from . import signals
 
@@ -199,6 +199,8 @@ class CASBackend(object):
 
     def authenticate(self, ticket, service):
         """Verifies CAS ticket and gets or creates User object"""
+        User = get_user_model()
+
         if self.protocol == 1:
             valid = CAS1Validation(ticket, service)
         elif self.protocol == 2:
@@ -268,6 +270,7 @@ class CASBackend(object):
 
     def get_user(self, user_id):
         """Retrieve the user's entry in the User model if it exists"""
+        User = get_user_model()
         try:
             return User.objects.get(pk=user_id)
         except User.DoesNotExist:
