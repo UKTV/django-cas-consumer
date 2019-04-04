@@ -34,9 +34,9 @@ def login(request, redirect_field_name=REDIRECT_FIELD_NAME):
 
     """
     ticket = request.GET.get(settings.CAS_TICKET_LABEL, None)
-    redirect_to = request.REQUEST.get(redirect_field_name,
+    redirect_to = request.GET.get(redirect_field_name,
                                       request.session.pop('login_redirect_to', ''))
-    service = request.REQUEST.get(settings.CAS_SERVICE_LABEL,
+    service = request.GET.get(settings.CAS_SERVICE_LABEL,
                                   request.session.pop('cas_service', settings.CAS_SERVICE))
     
 
@@ -48,13 +48,13 @@ def login(request, redirect_field_name=REDIRECT_FIELD_NAME):
         params.update({settings.CAS_SERVICE_LABEL: service})
         # override params with anything posted to the view
         for key,value in params.items():
-            if key in request.REQUEST:
-                params[key] = request.REQUEST.get(key, value)
+            if key in request.GET:
+                params[key] = request.GET.get(key, value)
         url = cas_login + '?'
-        if 'req_press' in request.REQUEST and 'uid' in request.REQUEST:
+        if 'req_press' in request.GET and 'uid' in request.GET:
             url += urlencode({
                 'req_press': 1,
-                'uid': request.REQUEST['uid']
+                'uid': request.GET['uid']
             })
             url += '&'
         raw_params = ['%s=%s' % (key, value) for key, value in params.items()]
@@ -77,6 +77,12 @@ def login(request, redirect_field_name=REDIRECT_FIELD_NAME):
         # Okay, security checks complete. Log the user in.
         auth_login(request, user)
         name = user.first_name or user.username
+
+        if '?' in redirect_to:
+            redirect_to += '&loginComplete=true'
+        else:
+            redirect_to += '?loginComplete=true'
+
         if messages is not None:
             messages.success(request, "Login succeeded. Welcome, %s." % name)
         return HttpResponseRedirect(redirect_to)
