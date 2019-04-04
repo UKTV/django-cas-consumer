@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 """steps/auth_steps.py -- authentication steps for testing the CAS consumer
 """
-import urllib2
-from StringIO import StringIO
+try:
+    import urllib2
+except ImportError:
+    import urllib.request as urllib2
+
+from io import StringIO
 
 from behave import given, when, then
 
