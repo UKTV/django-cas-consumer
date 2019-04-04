@@ -2,10 +2,19 @@
 """cas_consumer.backends -- authentication backend for CAS v1.0
 """
 import logging
+import sys
 logger = logging.getLogger('cas.consumer')
 
-import urllib2
-import urllib
+try:
+    import urllib2
+except (ImportError, ModuleNotFoundError):
+    import urllib.request as urllib2
+
+if sys.version[0] == 2:
+    import urllib
+else:
+    import urllib.parse as urllib
+
 import gzip
 
 try:
@@ -13,10 +22,7 @@ try:
 except ImportError:
     from elementtree import ElementTree
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
+from io import BytesIO
 
 from django.conf import settings
 
@@ -59,7 +65,7 @@ class _CASValidation(object):
             request = urllib2.Request(url)
             request.add_header('Accept-encoding', 'gzip')
             page = urllib2.urlopen(request)
-            buf = StringIO(page.read())
+            buf = BytesIO(page.read())
 
             if page.info().get('Content-Encoding') == 'gzip':
                 buf = gzip.GzipFile(fileobj=buf)

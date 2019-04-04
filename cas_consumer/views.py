@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """cas_consumer.views -- authentication views for the CAS consumer.
 """
-import urlparse
+import sys
+
 from django.http import HttpResponseForbidden, HttpResponseRedirect
 from django.utils.http import urlencode
 from django.contrib.auth import authenticate
@@ -12,6 +13,11 @@ try:
     from django.contrib import messages
 except ImportError:
     messages = None
+
+if sys.version[0] == 2:
+    import urlparse
+else:
+    import urllib.parse as urlparse
 
 __all__ = ['login', 'logout']
 
