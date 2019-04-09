@@ -7,7 +7,7 @@ logger = logging.getLogger('cas.consumer')
 
 try:
     import urllib2
-except (ImportError, ModuleNotFoundError):
+except ImportError:
     import urllib.request as urllib2
 
 if sys.version[0] == 2:
@@ -197,7 +197,7 @@ class CASBackend(object):
     set_email = getattr(settings, 'CAS_SET_EMAIL_FROM_ATTRIBUTE', True)
     set_username = getattr(settings, 'CAS_SET_USERNAME_FROM_PRIMARY', False)
 
-    def authenticate(self, ticket, service):
+    def authenticate(self, request, ticket, service):
         """Verifies CAS ticket and gets or creates User object"""
         User = get_user_model()
 
